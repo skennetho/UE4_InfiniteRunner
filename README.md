@@ -1,5 +1,6 @@
 # ParagonDuel
 My First Toy Project using UnrealEngine &amp; C++
+[ParagonDuel기획서(작성중)](https://glimmer-fireplace-3ae.notion.site/ParagonDuel-919df217dd444675b4aeb2c7e3e18446).
 
 # 구현순서
 
