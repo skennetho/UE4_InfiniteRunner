@@ -12,3 +12,6 @@ My First Toy Project using UnrealEngine &amp; C++
 6. 보스 구현
 
 # 구현할 기능 리스트업
+### 1. 게임시작과 종료 구현 (HUD) task_gamemode
+- [ ]  게임 시작 메뉴 → {게임시작, 게임종료}
+- [ ]  종료 트리거 구현
