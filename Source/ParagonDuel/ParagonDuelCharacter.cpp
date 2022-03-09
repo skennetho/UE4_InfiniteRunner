@@ -50,69 +50,9 @@ AParagonDuelCharacter::AParagonDuelCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AParagonDuelCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AParagonDuelCharacter::Run()
 {
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-
-	PlayerInputComponent->BindAxis("MoveForward", this, &AParagonDuelCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AParagonDuelCharacter::MoveRight);
-
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AParagonDuelCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AParagonDuelCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AParagonDuelCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AParagonDuelCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AParagonDuelCharacter::OnResetVR);
-}
-
-
-void AParagonDuelCharacter::OnResetVR()
-{
-	// If ParagonDuel is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in ParagonDuel.Build.cs is not automatically propagated
-	// and a linker error will result.
-	// You will need to either:
-	//		Add "HeadMountedDisplay" to [YourProject].Build.cs PublicDependencyModuleNames in order to build successfully (appropriate if supporting VR).
-	// or:
-	//		Comment or delete the call to ResetOrientationAndPosition below (appropriate if not supporting VR)
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AParagonDuelCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void AParagonDuelCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
-}
-
-void AParagonDuelCharacter::TurnAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-}
-
-void AParagonDuelCharacter::LookUpAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-void AParagonDuelCharacter::MoveForward(float Value)
-{
-	if ((Controller != nullptr) && (Value != 0.0f))
+	if ((Controller != nullptr) && (RunSpeed > 0.f))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -120,21 +60,62 @@ void AParagonDuelCharacter::MoveForward(float Value)
 
 		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, Value);
+		AddMovementInput(Direction, RunSpeed);
 	}
 }
 
-void AParagonDuelCharacter::MoveRight(float Value)
+void AParagonDuelCharacter::ToggleRun()
 {
-	if ( (Controller != nullptr) && (Value != 0.0f) )
-	{
-		// find out which way is right
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		AddMovementInput(Direction, Value);
+	IsMovable = !IsMovable;
+}
+
+void AParagonDuelCharacter::TurnCorner()
+{
+	if (Controller != nullptr) {
+		FRotator Rotation = Controller->GetControlRotation();
+
+		if (Rotation == DesiredRotator) return;
+
+		Rotation = FMath::RInterpTo(Rotation, DesiredRotator, GetWorld()->GetDeltaSeconds(), InterpSpeed);
+		Controller->SetControlRotation(Rotation);
 	}
+	
+}
+
+void AParagonDuelCharacter::TurnLeft()
+{
+	if (CanTurn) {
+		DesiredRotator = Controller->GetControlRotation();
+		DesiredRotator += FRotator(0.f, -90.f, 0.f);
+	}
+}
+
+void AParagonDuelCharacter::TurnRight()
+{
+	if (CanTurn) {
+		DesiredRotator = Controller->GetControlRotation();
+		DesiredRotator += FRotator(0.f, 90.f, 0.f);
+	}
+}
+
+void AParagonDuelCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+	// Set up gameplay key bindings
+	check(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("RunToggle",IE_Pressed, this, &AParagonDuelCharacter::ToggleRun);
+	PlayerInputComponent->BindAction("Right", IE_Pressed, this, &AParagonDuelCharacter::TurnRight);
+	PlayerInputComponent->BindAction("Left", IE_Pressed, this, &AParagonDuelCharacter::TurnLeft);
+
+}
+
+void AParagonDuelCharacter::Tick(float DeltaTime)
+{
+	if (IsMovable) {
+		Run();
+	}
+
+	TurnCorner();
 }
