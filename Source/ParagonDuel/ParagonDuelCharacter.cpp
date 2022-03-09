@@ -30,7 +30,7 @@ AParagonDuelCharacter::AParagonDuelCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
-	GetCharacterMovement()->AirControl = 0.2f;
+	GetCharacterMovement()->AirControl = 0.5f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -50,18 +50,26 @@ AParagonDuelCharacter::AParagonDuelCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AParagonDuelCharacter::Run()
+void AParagonDuelCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	if ((Controller != nullptr) && (RunSpeed > 0.f))
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	check(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		AddMovementInput(Direction, RunSpeed);
-	}
+	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AParagonDuelCharacter::ToggleRun);
+	PlayerInputComponent->BindAction("Right", IE_Pressed, this, &AParagonDuelCharacter::TurnRight);
+	PlayerInputComponent->BindAction("Left", IE_Pressed, this, &AParagonDuelCharacter::TurnLeft);
+
+	PlayerInputComponent->BindAxis("LeftRight", this, &AParagonDuelCharacter::MoveLeftRight);
+
+}
+
+void AParagonDuelCharacter::Tick(float DeltaTime)
+{
+	TurnCorner();
+
+	if (IsMovable) 
+		Run();
 }
 
 void AParagonDuelCharacter::ToggleRun()
@@ -87,6 +95,10 @@ void AParagonDuelCharacter::TurnLeft()
 	if (CanTurn) {
 		DesiredRotator = Controller->GetControlRotation();
 		DesiredRotator += FRotator(0.f, -90.f, 0.f);
+		CanTurn = false;
+	}
+	else {
+		MoveLeftRight(-1.f);
 	}
 }
 
@@ -95,27 +107,38 @@ void AParagonDuelCharacter::TurnRight()
 	if (CanTurn) {
 		DesiredRotator = Controller->GetControlRotation();
 		DesiredRotator += FRotator(0.f, 90.f, 0.f);
+		CanTurn = false;
+	}
+	else {
+		MoveLeftRight(1.f);
 	}
 }
 
-void AParagonDuelCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+void AParagonDuelCharacter::MoveLeftRight(float Value) {
+	if ((Controller != nullptr) && (Value != 0.0f))
+	{
+		// find out which way is right
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	PlayerInputComponent->BindAction("RunToggle",IE_Pressed, this, &AParagonDuelCharacter::ToggleRun);
-	PlayerInputComponent->BindAction("Right", IE_Pressed, this, &AParagonDuelCharacter::TurnRight);
-	PlayerInputComponent->BindAction("Left", IE_Pressed, this, &AParagonDuelCharacter::TurnLeft);
-
+		// get right vector 
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		
+		// add movement in that direction
+		AddMovementInput(Direction, Value);
+	}
 }
 
-void AParagonDuelCharacter::Tick(float DeltaTime)
+void AParagonDuelCharacter::Run()
 {
-	if (IsMovable) {
-		Run();
-	}
+	if ((Controller != nullptr) && (RunSpeed > 0.f))
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-	TurnCorner();
+		// get forward vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, RunSpeed);
+	}
 }

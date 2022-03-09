@@ -32,14 +32,14 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = CharacterMovement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Runner)
 	bool IsMovable = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CharacterMovement)
-	float RunSpeed = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner)
+	float RunSpeed = 1.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CharacterMovement)
-	bool CanTurn = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner, meta = (AllowPrivateAccess = "true"))
+	bool CanTurn = false;
 
 	FRotator DesiredRotator = FRotator(0,0,0);
 	float InterpSpeed = 10.f;
@@ -52,6 +52,7 @@ protected:
 	void TurnCorner();
 	void TurnLeft();
 	void TurnRight();
+	void MoveLeftRight(float Value);
 
 protected:
 	// APawn interface
