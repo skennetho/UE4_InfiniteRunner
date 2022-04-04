@@ -41,11 +41,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner, meta = (AllowPrivateAccess = "true"))
 	bool CanTurn = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner, meta = (AllowPrivateAccess = "true"))
+	bool IsDead = false;
+
 	FRotator DesiredRotator = FRotator(0,0,0);
 	float InterpSpeed = 10.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner, meta = (AllowPrivateAccess = "true"))
+	int TotalCoin = 0;
 
-protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Runner, meta = (AllowPrivateAccess = "true"))
+	float Distance = 0.0f;
+
+private: 
+	FVector Temp;
+public:
 	void Run();
 	void ToggleRun();
 
@@ -53,6 +63,12 @@ protected:
 	void TurnLeft();
 	void TurnRight();
 	void MoveLeftRight(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "Coin")
+	void AddCoin();
+
+	UFUNCTION(BlueprintCallable, Category = "Coin")
+	void ClearCoin();
 
 protected:
 	// APawn interface

@@ -31,6 +31,7 @@ AParagonDuelCharacter::AParagonDuelCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.5f;
+	GetCharacterMovement()->MaxWalkSpeed = 1500.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -66,10 +67,16 @@ void AParagonDuelCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 void AParagonDuelCharacter::Tick(float DeltaTime)
 {
-	TurnCorner();
+	if (IsDead)
+		return;
 
+	TurnCorner();
 	if (IsMovable) 
 		Run();
+	
+	// calculate moved distance only ground
+	/*Temp = this->GetVelocity();
+	Distance += FMath::Sqrt((Temp.X*Temp.X) + (Temp.Y*Temp.Y)) * DeltaTime;*/
 }
 
 void AParagonDuelCharacter::ToggleRun()
@@ -87,7 +94,6 @@ void AParagonDuelCharacter::TurnCorner()
 		Rotation = FMath::RInterpTo(Rotation, DesiredRotator, GetWorld()->GetDeltaSeconds(), InterpSpeed);
 		Controller->SetControlRotation(Rotation);
 	}
-	
 }
 
 void AParagonDuelCharacter::TurnLeft()
@@ -127,6 +133,17 @@ void AParagonDuelCharacter::MoveLeftRight(float Value) {
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AParagonDuelCharacter::AddCoin()
+{
+	UE_LOG(LogTemp, Warning, TEXT("TotalCoins achieve : %d"), TotalCoin);
+	TotalCoin++;
+}
+
+void AParagonDuelCharacter::ClearCoin()
+{
+	TotalCoin = 0;
 }
 
 void AParagonDuelCharacter::Run()
