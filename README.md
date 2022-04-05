@@ -1,14 +1,19 @@
-# ParagonDuel
-My First Toy Project using UnrealEngine &amp; C++
-[ParagonDuel기획서(작성중)](https://glimmer-fireplace-3ae.notion.site/ParagonDuel-919df217dd444675b4aeb2c7e3e18446).
+# InfiniteRunner
 
-# 구현순서
+## 특징
+ - 무한히 생성되는 맵을 죽지 않고 달려보자.
+ - 획득한 코인을 소모하여 대시를 사용할 수 있다.
+ - 까만 구체를 먹으면 일정시간 무적이다!
+ 
+## 이동 방법
+- w : 앞으로 가기 토글
+- a,d : 좌우로 이동
+- space bar : 점프
+- f : dash
 
-1. 게임 시작과 종료 구현.
-2. 캐릭터 이동 
-3. 캐릭터 공격
-4. 캐릭터 방어
-5. 플레이어 구현
-6. 보스 구현
+## 기능
+대부분 블루프린트로 구현하였습니다.
 
-# 구현할 기능 리스트업
+ - 무한히 생성 맵 기능
+ - 점수 계산 기능
+ - 무적 기능
